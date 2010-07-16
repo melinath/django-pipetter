@@ -1,0 +1,9 @@
+Pipettes is a module designed to provide uniform registration and processing of inclusion tags for information pulled from other sources, such as websites. By design, it defines very little about the nature of the pipette, requiring only that it supply the following method:
+
+obj.get_context   :: returns variables to be added to the context of the included template.
+
+A pipette may optionally supply:
+
+obj.tag_name      :: the name of the template tag. Defaults to obj.__module__.rsplit('.')[-1].
+obj.template      :: the name of the template to be used with the pipette. Defaults to "pipettes/<modulename>.html"
+obj.takes_context :: passed directly to the argument for inclusion tags. Defaults to False.

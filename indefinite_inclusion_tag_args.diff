@@ -1,0 +1,71 @@
+Index: django/template/__init__.py
+===================================================================
+--- django/template/__init__.py	(revision 13431)
++++ django/template/__init__.py	(working copy)
+@@ -848,18 +848,23 @@
+             return ''
+         return _render_value_in_context(output, context)
+ 
+-def generic_tag_compiler(params, defaults, name, node_class, parser, token):
++def generic_tag_compiler(params, defaults, name, node_class, parser, token, varargs=None):
+     "Returns a template.Node subclass."
+     bits = token.split_contents()[1:]
+     bmax = len(params)
+     def_len = defaults and len(defaults) or 0
+     bmin = bmax - def_len
+-    if(len(bits) < bmin or len(bits) > bmax):
+-        if bmin == bmax:
+-            message = "%s takes %s arguments" % (name, bmin)
+-        else:
+-            message = "%s takes between %s and %s arguments" % (name, bmin, bmax)
+-        raise TemplateSyntaxError(message)
++    if varargs is None:
++        if(len(bits) < bmin or len(bits) > bmax):
++            if bmin == bmax:
++                message = "%s takes %s arguments" % (name, bmin)
++            else:
++                message = "%s takes between %s and %s arguments" % (name, bmin, bmax)
++            raise TemplateSyntaxError(message)
++    else:
++        if(len(bits) < bmin):
++            message = "%s takes at least %s arguments" % (name, bmin)
++            raise TemplateSyntaxError(message)
+     return node_class(bits)
+ 
+ class Library(object):
+@@ -916,7 +921,7 @@
+         return func
+ 
+     def simple_tag(self,func):
+-        params, xx, xxx, defaults = getargspec(func)
++        params, varargs, xx, defaults = getargspec(func)
+ 
+         class SimpleNode(Node):
+             def __init__(self, vars_to_resolve):
+@@ -926,14 +931,14 @@
+                 resolved_vars = [var.resolve(context) for var in self.vars_to_resolve]
+                 return func(*resolved_vars)
+ 
+-        compile_func = curry(generic_tag_compiler, params, defaults, getattr(func, "_decorated_function", func).__name__, SimpleNode)
++        compile_func = curry(generic_tag_compiler, params, defaults, getattr(func, "_decorated_function", func).__name__, SimpleNode, varargs=varargs)
+         compile_func.__doc__ = func.__doc__
+         self.tag(getattr(func, "_decorated_function", func).__name__, compile_func)
+         return func
+ 
+     def inclusion_tag(self, file_name, context_class=Context, takes_context=False):
+         def dec(func):
+-            params, xx, xxx, defaults = getargspec(func)
++            params, varargs, xx, defaults = getargspec(func)
+             if takes_context:
+                 if params[0] == 'context':
+                     params = params[1:]
+@@ -968,8 +973,7 @@
+                     if csrf_token is not None:
+                         new_context['csrf_token'] = csrf_token
+                     return self.nodelist.render(new_context)
+-
+-            compile_func = curry(generic_tag_compiler, params, defaults, getattr(func, "_decorated_function", func).__name__, InclusionNode)
++            compile_func = curry(generic_tag_compiler, params, defaults, getattr(func, "_decorated_function", func).__name__, InclusionNode, varargs=varargs)
+             compile_func.__doc__ = func.__doc__
+             self.tag(getattr(func, "_decorated_function", func).__name__, compile_func)
+             return func

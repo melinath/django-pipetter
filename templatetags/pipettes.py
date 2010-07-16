@@ -20,8 +20,8 @@ def pipette_context(name, pipette):
 	# FIXME: return either the actual function or a function that just pulls from the cache?
 	# FIXME: find a way to set the vars do_pipette takes to the vars pipette.get_context takes
 	
-	def do_pipette(var):
-		return pipette.get_context(var)
+	def do_pipette(*args):
+		return pipette.get_context(*args)
 	do_pipette.__name__ = name
 	return do_pipette
 
