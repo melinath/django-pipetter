@@ -7,3 +7,4 @@ A pipette may optionally supply:
 obj.tag_name      :: the name of the template tag. Defaults to obj.__module__.rsplit('.')[-1].
 obj.template      :: the name of the template to be used with the pipette. Defaults to "pipettes/<modulename>.html"
 obj.takes_context :: passed directly to the argument for inclusion tags. Defaults to False.
+obj.cache_for     :: how long to cache the context results for (minutes). Default: 5.

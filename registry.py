@@ -34,6 +34,9 @@ class Pipettes(object):
 		if not hasattr(pipette, 'takes_context'):
 			pipette.takes_context = False
 		
+		if not hasattr(pipette, 'cache_for'):
+			pipette.cache_for = 5
+		
 		self._registry[tag] = pipette
 	
 	def unregister(self, pipette):	

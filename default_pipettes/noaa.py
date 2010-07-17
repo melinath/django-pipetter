@@ -16,4 +16,4 @@ class pipette(Weather.Station):
 	
 	@property
 	def context(self, vars=['temp_f', 'temp_c', 'link', 'weather']):
-		return dict([(k, v) for k,v in self.items()])
+		return dict([(k, v) for k,v in self.items() if k in vars])
