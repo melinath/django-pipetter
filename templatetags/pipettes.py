@@ -18,11 +18,20 @@ def pipette_context(name, pipette):
 	def do_pipette(*args):
 		cached = cache.get(cache_key, None)
 		
-		if cached is None or (datetime.datetime.now() - cached['time']) > datetime.timedelta(0, 0, 0, 0, pipette.cache_for):
-			cached = {'time': datetime.datetime.now(), 'context': pipette.get_context(*args)}
+		if cached is None:
+			cached = {}
+		
+		if (
+			args not in cached or
+			(datetime.datetime.now() - cached[args]['time']) > datetime.timedelta(0, 0, 0, 0, pipette.cache_for)
+			):
+			cached[args] = {
+				'time': datetime.datetime.now(),
+				'context': pipette.get_context(*args)
+			}
 			cache.set(cache_key, cached)
 		
-		return cached['context']
+		return cached[args]['context']
 	do_pipette.__name__ = name
 	return do_pipette
 
