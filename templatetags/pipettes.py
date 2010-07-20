@@ -25,11 +25,15 @@ def pipette_context(name, pipette):
 			args not in cached or
 			(datetime.datetime.now() - cached[args]['time']) > datetime.timedelta(0, 0, 0, 0, pipette.cache_for)
 			):
-			cached[args] = {
-				'time': datetime.datetime.now(),
-				'context': pipette.get_context(*args)
-			}
-			cache.set(cache_key, cached)
+			new_context = pipette.get_context(*args);
+			if new_context or args not in cached:
+				cached[args] = 	{
+					'time': datetime.datetime.now(),
+					'context': new_context
+				}
+				cache.set(cache_key, cached)
+			else:
+				cached[args]['time'] = datetime.datetime.now()
 		
 		return cached[args]['context']
 	do_pipette.__name__ = name
