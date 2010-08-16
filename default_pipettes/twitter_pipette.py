@@ -18,7 +18,6 @@ else:
 		def __init__(self):
 			self.api = twitter.Api()
 		
-		def get_context(self, user=getattr(settings, 'PIPETTES_TWITTER_USER', None),
-						messages='5'):
-			messages = int(messages)
-			return {'statuses': self.api.GetUserTimeline(user)[:messages]}
+		def get_context(self, user=getattr(settings, 'PIPETTES_TWITTER_USER', None), count='5'):
+			count = int(count)
+			return {'statuses': self.api.GetUserTimeline(user, count=count)}
