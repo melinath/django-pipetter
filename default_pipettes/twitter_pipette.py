@@ -9,7 +9,6 @@ try:
 except ImportError:
 	pass
 else:
-	from pipettes.registry import pipettes
 	from django.conf import settings
 
 
@@ -23,6 +22,3 @@ else:
 						messages='5'):
 			messages = int(messages)
 			return {'statuses': self.api.GetUserTimeline(user)[:messages]}
-	
-	
-	pipettes.register(TwitterPipette())

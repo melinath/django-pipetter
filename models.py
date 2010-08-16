@@ -1,1 +1,1 @@
-# dummy file to register as a django app.
+# dummy file to permit registration as a django app so the templatetags can be used.

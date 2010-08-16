@@ -2,25 +2,26 @@
 Registers a pipette to be used with the syntax:
 {% noaa <stationkey> [<datakeys>]%}
 
-Requires python-weather, which pulls from NOAA.
+Depends on BeautifulSoup.
 """
-
 try:
-	import Weather
-except ImportError:
+	from BeautifulSoup import BeautifulSoup
+except:
 	pass
 else:
-	from pipettes.registry import pipettes
-	class pipette(Weather.Station):
-		@classmethod
+	import urllib2
+	
+	
+	class WeatherPipette(object):
+		cache_for = 30
+		
 		def get_context(self, station, datakeys=['temp_f', 'temp_c', 'link', 'weather']):
-			instance = self(station)
-			instance.datakeys = datakeys
-			return instance.context
-	
-		@property
-		def context(self):
-			return dict([(k, v) for k,v in self.items() if k in self.datakeys])
-	
-	
-	pipettes.register(pipette)
+			page = urllib2.urlopen('http://www.weather.gov/data/current_obs/%s.xml' % station)
+			soup = BeautifulSoup(page)
+			context = {}
+			for key in datakeys:
+				try:
+					context[key] = getattr(soup, key).text
+				except:
+					pass
+			return context

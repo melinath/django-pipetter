@@ -1,5 +1,5 @@
 from django import template
-from ..registry import pipettes
+from pipettes import pipettes
 from django.core.cache import cache
 import datetime
 
@@ -12,7 +12,6 @@ def pipette_context(name, pipette):
 	Wraps the pipette's get_context method to cache it and correctly set the
 	function's name for tag creation.
 	"""
-	# FIXME: find a way to set the vars do_pipette takes to the vars pipette.get_context takes
 	cache_key = 'pipette_%s' % name
 	
 	def do_pipette(*args):
@@ -21,6 +20,7 @@ def pipette_context(name, pipette):
 		if cached is None:
 			cached = {}
 		
+		# Check if the pipette hasn't been called with these args before or if the cache time has expired.
 		if (
 			args not in cached or
 			(datetime.datetime.now() - cached[args]['time']) > datetime.timedelta(0, 0, 0, 0, pipette.cache_for)
@@ -33,6 +33,7 @@ def pipette_context(name, pipette):
 				}
 				cache.set(cache_key, cached)
 			else:
+				# If a cached version exists and there's no current information, poke the cache time.
 				cached[args]['time'] = datetime.datetime.now()
 		
 		return cached[args]['context']

@@ -1,8 +1,16 @@
-from pipettes.default_pipettes import noaa, twitter_pipette
-from pipettes.registry import pipettes
+default_pipettes = []
 
 
-__all__ = (
-	'noaa',
-	'twitter_pipette',
-)
+try:
+	from pipettes.default_pipettes.noaa import WeatherPipette
+except ImportError:
+	pass
+else:
+	default_pipettes.append(WeatherPipette)
+
+try:
+	from pipettes.default_pipettes.twitter_pipette import TwitterPipette
+except ImportError:
+	pass
+else:
+	default_pipettes.append(TwitterPipette)
