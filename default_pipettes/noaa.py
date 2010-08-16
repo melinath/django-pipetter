@@ -12,7 +12,7 @@ else:
 	import urllib2
 	
 	
-	class WeatherPipette(object):
+	class NoaaPipette(object):
 		cache_for = 30
 		
 		def get_context(self, station, datakeys=['temp_f', 'temp_c', 'link', 'weather']):
