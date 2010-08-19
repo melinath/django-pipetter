@@ -16,7 +16,7 @@ else:
 		cache_for = 30
 		
 		def get_context(self, station, datakeys=['temp_f', 'temp_c', 'link', 'weather']):
-			page = urllib2.urlopen('http://www.weather.gov/data/current_obs/%s.xml' % station)
+			page = urllib2.urlopen('http://www.weather.gov/xml/current_obs/%s.xml' % station)
 			soup = BeautifulSoup(page)
 			context = {}
 			for key in datakeys:
