@@ -21,7 +21,7 @@ else:
 			context = {}
 			for key in datakeys:
 				try:
-					context[key] = getattr(soup, key).text
+					context[key] = getattr(soup, key).string
 				except:
 					pass
 			return context
