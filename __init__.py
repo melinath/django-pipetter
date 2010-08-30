@@ -55,6 +55,9 @@ class PipetteRegistry(object):
 	
 	def items(self):
 		return self._registry.items()
+	
+	def __getitem__(self, key):
+		return self._registry[key]
 
 
 pipettes = PipetteRegistry()

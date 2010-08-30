@@ -15,7 +15,7 @@ def pipette_context(name, pipette):
 	cache_key = 'pipette_%s' % name
 	
 	def do_pipette(*args):
-		cached = cache.get(cache_key, None)
+		cached = cache.get(cache_key)
 		
 		if cached is None:
 			cached = {}
@@ -26,19 +26,20 @@ def pipette_context(name, pipette):
 			(datetime.datetime.now() - cached[args]['time']) > datetime.timedelta(0, 0, 0, 0, pipette.cache_for)
 			):
 			try:
-				new_context = pipette.get_context(*args);
+				new_context = pipette.get_context(*args)
 			except:
 				new_context = {}
 			
 			if new_context or args not in cached:
-				cached[args] = 	{
+				cached[args] = {
 					'time': datetime.datetime.now(),
 					'context': new_context
 				}
-				cache.set(cache_key, cached)
 			else:
 				# If a cached version exists and there's no current information, poke the cache time.
 				cached[args]['time'] = datetime.datetime.now()
+			
+			cache.set(cache_key, cached, (pipette.cache_for+5)*60)
 		
 		return cached[args]['context']
 	do_pipette.__name__ = name
