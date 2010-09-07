@@ -12,4 +12,4 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 		url = 'http://%s%s' % (Site.objects.get_current().domain, reverse('pipettes.views.refresh_cache', kwargs={'pipette_names': ''.join(['%s/' % arg for arg in args])}))
 		urllib2.urlopen(url)
-		self.stdout.write('Caches reset.\n\n')
+		print 'Caches reset.\n\n'
