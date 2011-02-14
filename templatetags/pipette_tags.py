@@ -9,17 +9,20 @@ register = template.Library()
 
 class PipetteNode(template.Node):
 	def __init__(self, pipette, args, template=None):
-		self.pipette_name = pipette
-		self.pipette = pipettes.__getitem__(pipette)
+		self.tag_name = pipette
+		self.pipette = pipettes[pipette]
 		self.args = args
 		self.template = template
 	
 	def render(self, context):
 		args = tuple([bit.resolve(context) for bit in self.args])
 		
-		template_path = self.template.resolve(context) if self.template else None
+		if self.template is not None:
+			template_path = self.template.resolve(context)
+		else:
+			template_path = self.pipette.template
 		
-		cache_key = 'pipette_%s' % self.pipette_name
+		cache_key = 'pipette_%s' % self.tag_name
 		cached = cache.get(cache_key)		
 		if cached is None:
 			cached = {}
@@ -50,7 +53,7 @@ class PipetteNode(template.Node):
 			cache.set(cache_key, cached, (self.pipette.cache_for+5)*60)
 		
 		c = template.Context(cached[args]['context'])
-		t = get_template('pipettes/%s.html' % self.pipette_name) if template_path is None else get_template(template_path)
+		t = get_template() if template_path is None else get_template(template_path)
 		
 		s = t.render(c)
 		return s
