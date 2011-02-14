@@ -1,5 +1,6 @@
 from pipettes.default_pipettes import default_pipettes
 from inspect import ismethod
+import re
 
 
 class NotRegistered(Exception):
@@ -14,23 +15,29 @@ class PipetteError(Exception):
 	pass
 
 
+PIPETTE_TAG_NAME_RE = re.compile("^[a-zA-Z0-9]\w*$")
+
+
 class PipetteRegistry(object):
 	def __init__(self):
 		self._registry = {}
 	
-	def register(self, pipette):
-		# FIXME: could check to be sure that the required attributes and methods are in place.
+	def register(self, pipette, tag_name=None):
 		if not hasattr(pipette, 'get_context') or not ismethod(pipette.get_context):
 			raise PipetteError('%s does not define a get_context method' % pipette)
 		
-		tag = getattr(pipette, 'tag_name', pipette.__module__.rsplit('.', 1)[-1])
+		if tag_name is None:
+			tag_name = getattr(pipette, 'tag_name', pipette.__module__.rsplit('.', 1)[-1])
 		
-		if tag in self._registry:
-			raise AlreadyRegistered('Pipette tag %s was already registered.' % tag)
+		if not PIPETTE_TAG_NAME_RE.match(tag_name):
+			raise PipetteError("%s is not a valid tag name." % tag_name)
+		
+		if tag_name in self._registry:
+			raise AlreadyRegistered('Pipette tag %s was already registered.' % tag_name)
 		
 		# Set some defaults
 		if not hasattr(pipette, 'template'):
-			pipette.template = "pipettes/%s.html" % tag
+			pipette.template = "pipettes/%s.html" % tag_name
 		
 		if not hasattr(pipette, 'takes_context'):
 			pipette.takes_context = False
@@ -38,15 +45,16 @@ class PipetteRegistry(object):
 		if not hasattr(pipette, 'cache_for'):
 			pipette.cache_for = 5
 		
-		self._registry[tag] = pipette
+		self._registry[tag_name] = pipette
 	
-	def unregister(self, pipette):	
-		tag = pipette.__module__.rsplit('.', 1)[-1]
+	def unregister(self, pipette, tag_name=None):
+		if tag_name is None:
+			tag_name = getattr(pipette, 'tag_name', pipette.__module__.rsplit('.', 1)[-1])
 		
-		if tag not in self._registry:
-			raise NotRegistered('Pipette tag %s is not registered' % tag)
-		elif self._registry[tag] != pipette:
-			raise NotRegistered('A different pipette is registered as tag %s' % tag)
+		if tag_name not in self._registry:
+			raise NotRegistered('Pipette tag %s is not registered' % tag_name)
+		elif self._registry[tag_name] != pipette:
+			raise NotRegistered('A different pipette is registered as tag %s' % tag_name)
 		
 		self._registry.remove(pipette)
 	
