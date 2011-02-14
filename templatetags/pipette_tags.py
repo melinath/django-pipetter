@@ -1,5 +1,6 @@
 from django import template
 from pipettes import pipettes
+from pipettes.utils import get_cache_or_new
 from django.core.cache import cache
 from django.template.loader import get_template, render_to_string
 import datetime
@@ -22,38 +23,8 @@ class PipetteNode(template.Node):
 		else:
 			template_path = self.pipette.template
 		
-		cache_key = 'pipette_%s' % self.tag_name
-		cached = cache.get(cache_key)		
-		if cached is None:
-			cached = {}
-		
-		
-		# Check if the pipette hasn't been called with these args before or if the cache time has expired.
-		if (
-			self.args not in cached or
-			(datetime.datetime.now() - cached[self.args]['time']) > datetime.timedelta(0, 0, 0, 0, self.pipette.cache_for)
-			):
-			try:
-				if args:
-					new_context = self.pipette.get_context(*args)
-				else:
-					new_context = self.pipette.get_context()
-			except:
-				new_context = {}
-			
-			if new_context or args not in cached:
-				cached[args] = {
-					'time': datetime.datetime.now(),
-					'context': new_context
-				}
-			else:
-				# If a cached version exists and there's no current information, poke the cache time.
-				cached[args]['time'] = datetime.datetime.now()
-			
-			cache.set(cache_key, cached, (self.pipette.cache_for+5)*60)
-		
-		c = template.Context(cached[args]['context'])
-		t = get_template() if template_path is None else get_template(template_path)
+		c = template.Context(get_cache_or_new(self.tag_name, args))
+		t = get_template(template_path)
 		
 		s = t.render(c)
 		return s
