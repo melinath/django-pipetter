@@ -5,6 +5,5 @@ obj.get_context   :: returns variables to be added to the context of the include
 A pipette may optionally supply:
 
 obj.tag_name      :: the name of the template tag. Defaults to obj.__module__.rsplit('.')[-1].
-obj.template      :: the name of the template to be used with the pipette. Defaults to "pipettes/<modulename>.html"
-obj.takes_context :: passed directly to the argument for inclusion tags. Defaults to False.
+obj.template      :: the name of the template to be used with the pipette. Defaults to "pipettes/<tag_name>.html"
 obj.cache_for     :: how long to cache the context results for (minutes). Default: 5.
