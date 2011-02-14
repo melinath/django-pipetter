@@ -1,5 +1,5 @@
 from django import template
-from pipettes import pipettes
+from pipettes import pipettes, NotRegistered
 from pipettes.utils import get_cache_or_new
 from django.core.cache import cache
 from django.template.loader import get_template, render_to_string
