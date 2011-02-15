@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from pipettes import pipettes as registry
+from pipettes import pipettes as registry, NotRegistered
 import datetime
 
 
@@ -34,7 +34,7 @@ def create_cache(pipette_name, args):
 	"""Force creation of a cache for a pipette with a certain set of args.
 	If the cache for those args already exists, it will be updated."""
 	if pipette_name not in registry:
-		return
+		raise NotRegistered()
 	
 	cache_key = 'pipette_%s' % pipette_name
 	pipette = registry[pipette_name]
@@ -58,3 +58,37 @@ def create_cache(pipette_name, args):
 		cached[args]['time'] = datetime.datetime.now()
 	
 	cache.set(cache_key, cached, (pipette.cache_for+5)*60)
+	
+def get_cache_or_new(pipette_name, args):
+	"""If the pipette has a valid cache, return the cached data--otherwise fetch new data."""
+	if pipette_name not in registry:
+		raise NotRegistered
+		
+	cache_key = 'pipette_%s' % pipette_name
+	pipette = registry[pipette_name]
+	cached = cache.get(cache_key)
+	
+	if cached is None:
+		cached = {}
+		
+	if (
+		args not in cached or
+		(datetime.datetime.now() - cached[args]['time']) > datetime.timedelta(0, 0, 0, 0, pipette.cache_for)
+		):
+		try:
+			new_context = pipette.get_context(*args)
+		except:
+			new_context = {}
+		
+		if new_context or args not in cached:
+			cached[args] = {
+				'time': datetime.datetime.now(),
+				'context': new_context
+			}
+		else:
+			# If a cached version exists and there's no current information, poke the cache time.
+			cached[args]['time'] = datetime.datetime.now()
+		
+		cache.set(cache_key, cached, (pipette.cache_for+5)*60)
+		
+	return cached[args]['context']

@@ -1,5 +1,7 @@
-from django.http import HttpResponse
-from pipettes.utils import refresh_cache as refresh, create_cache as create
+from django.http import HttpResponse, Http404
+import django.utils.simplejson as json
+from pipettes.utils import refresh_cache as refresh, create_cache as create, get_cache_or_new
+from pipettes import pipettes, NotRegistered
 
 
 def refresh_cache(request, pipette_names):
@@ -9,5 +11,26 @@ def refresh_cache(request, pipette_names):
 
 
 def create_cache(request, pipette_name, argstr):
-	create(pipette_name, tuple(argstr.strip('/').split('/')))
+	try:
+		create(pipette_name, tuple(argstr.strip('/').split('/')))
+	except NotRegistered:
+		raise Http404('The specified pipette "%s" does not exist or is not registered.' % pipette_name)
+
 	return HttpResponse('')
+	
+def json_response(request, pipette_name, argstr=None):
+	"""Return the results of a pipette as a JSON response.
+	Expects arguments as a '/' separated string."""
+	
+	if argstr:
+		args = tuple(argstr.strip('/').split('/'))
+	else:
+		args = ()
+	
+	try:
+		response_data = get_cache_or_new(pipette_name, args)
+	except NotRegistered:
+		raise Http404('The specified pipette "%s" does not exist or is not registered.' % pipette_name)
+	
+	response = json.dumps(response_data)	
+	return HttpResponse(response, mimetype='application/json')
