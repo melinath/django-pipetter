@@ -66,33 +66,39 @@ class PipetteRegistry(object):
 	
 	def __getitem__(self, key):
 		return self._registry[key]
-		
-	def autodiscover(self):
-		"""
-		Auto-discover INSTALLED_APPS pipettes.py files.
-		Forces an import on all such files.
-		Recommended that you run this method in an application's templatetags module.
-		Modeled off of django.contrib.admin.autodiscover().
-		"""
-		import copy
-		from django.conf import settings
-		from django.utils.importlib import import_module
-		from django.utils.module_loading import module_has_submodule
-		
-		for app in settings.INSTALLED_APPS:
-			mod = import_module(app)
-			try:
-				before_import_registry = copy.copy(self._registry)
-				import_module('%s.pipettes' % app)
-			except:
-				# Reset the registry to the state before last import.
-				self._registry = before_import_registry
-				# Decide whether to bubble up this error. If there is no submodule, we can ignore it.
-				# If it's trying to import from the pipettes app, we can also safely ignore it.
-				if module_has_submodule(mod, 'pipettes') and app != self.__module__:
-					raise
 
 
 pipettes = PipetteRegistry()
 for pipette in default_pipettes:
 	pipettes.register(pipette)
+
+
+def autodiscover():
+	"""
+	Auto-discover INSTALLED_APPS pipettes.py files and force an import
+	on them. This function should be called from a module which is
+	known to run, such as a models.py or urls.py file. Modeled off of
+	django.contrib.admin.autodiscover().
+	"""
+	import copy
+	from django.conf import settings
+	from django.utils.importlib import import_module
+	from django.utils.module_loading import module_has_submodule
+	
+	for app in settings.INSTALLED_APPS:
+		if app == __package__:
+			# Don't try to import from the package we're in, i.e. pipettes.
+			continue
+		
+		mod = import_module(app)
+		try:
+			before_import_registry = copy.copy(pipettes._registry)
+			import_module('%s.pipettes' % app)
+		except:
+			# Reset the registry to the state before last import.
+			pipettes._registry = before_import_registry
+			# Decide whether to bubble up this error. If there is no
+			# submodule, we can ignore the error as a misguided import
+			# attempt. Otherwise, we want it to bubble up.
+			if module_has_submodule(mod, 'pipettes'):
+				raise

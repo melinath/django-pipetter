@@ -34,7 +34,7 @@ def create_cache(pipette_name, args):
 	"""Force creation of a cache for a pipette with a certain set of args.
 	If the cache for those args already exists, it will be updated."""
 	if pipette_name not in registry:
-		raise NotRegistered()
+		raise NotRegistered
 	
 	cache_key = 'pipette_%s' % pipette_name
 	pipette = registry[pipette_name]

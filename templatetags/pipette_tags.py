@@ -1,53 +1,78 @@
 from django import template
+from django.conf import settings
 from pipettes import pipettes, NotRegistered
 from pipettes.utils import get_cache_or_new
-from django.core.cache import cache
-from django.template.loader import get_template, render_to_string
 import datetime
 
 
 register = template.Library()
 
-class PipetteNode(template.Node):
-	def __init__(self, pipette, args, template=None):
-		self.tag_name = pipette
-		self.pipette = pipettes[pipette]
+
+class ConstantPipetteNode(template.Node):
+	def __init__(self, tag_name, args, template_path=None):
+		self.tag_name = tag_name
+		self.pipette = pipettes[tag_name]
 		self.args = args
-		self.template = template
+		
+		try:
+			t = template.loader.get_template(template_path or self.pipette.template)
+		except:
+			if settings.TEMPLATE_DEBUG:
+				raise
+			t = None
+		self.template = t
 	
 	def render(self, context):
-		args = tuple([bit.resolve(context) for bit in self.args])
-		
-		if self.template is not None:
-			template_path = self.template.resolve(context)
-		else:
-			template_path = self.pipette.template
-		
+		if self.template is None:
+			return settings.TEMPLATE_STRING_IF_INVALID
+		args = tuple([arg.resolve(context) for arg in self.args])
 		c = template.Context(get_cache_or_new(self.tag_name, args))
-		t = get_template(template_path)
+		return self.template.render(c)
+
+
+class PipetteNode(template.Node):
+	def __init__(self, tag_name, args, template_path):
+		self.tag_name = tag_name
+		self.pipette = pipettes[tag_name]
+		self.args = args
+		self.template_path = template_path
+	
+	def render(self, context):
+		try:
+			template_path = self.template_path.resolve(context)
+			t = template.loader.get_template(template_path)
+		except:
+			if settings.TEMPLATE_DEBUG:
+				raise
+			return settings.TEMPLATE_STRING_IF_INVALID
 		
-		s = t.render(c)
-		return s
+		args = tuple([arg.resolve(context) for arg in self.args])
+		c = template.Context(get_cache_or_new(self.tag_name, args))
+		return t.render(c)
 
 def do_pipette(parser, token):
 	"""
 	Syntax:
-	{% <pipette_name> [<arg1> <arg2> ...] [with <template>] %}
+	{% <pipette_name> [<arg1> <arg2> ...] [with <template_path>] %}
 	"""
 	bits = token.split_contents()
 	pipette_name = bits[0]
-	template = None
+	path = None
 	
 	if len(bits) > 3 and bits[-2] == 'with':
-		template = bits[-1]
+		path = bits[-1]
 		bits = bits[:-2]
 		
-	args = tuple([parser.compile_filter(arg) for arg in bits[1:]])
+	args = [parser.compile_filter(arg) for arg in bits[1:]]
 	
-	if template:
-		template = parser.compile_filter(template)
 	
-	return PipetteNode(pipette_name, args, template)
+	if path:
+		if path[0] not in ('"', "'") or path[0] != path[-1]:
+			path = parser.compile_filter(path)
+			return PipetteNode(pipette_name, args, path)
+		else:
+			path = path[1:-1]
+	return ConstantPipetteNode(pipette_name, args, path)
 
 
 for name, pipette in pipettes.items():
