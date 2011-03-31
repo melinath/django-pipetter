@@ -59,7 +59,7 @@ def do_pipette(parser, token):
 	pipette_name = bits[0]
 	path = None
 	
-	if len(bits) > 3 and bits[-2] == 'with':
+	if len(bits) > 2 and bits[-2] == 'with':
 		path = bits[-1]
 		bits = bits[:-2]
 		
