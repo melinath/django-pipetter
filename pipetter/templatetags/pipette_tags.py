@@ -1,7 +1,7 @@
 from django import template
 from django.conf import settings
-from pipettes import pipettes, NotRegistered
-from pipettes.utils import get_cache_or_new
+from pipetter import pipettes, NotRegistered
+from pipetter.utils import get_cache_or_new
 import datetime
 
 

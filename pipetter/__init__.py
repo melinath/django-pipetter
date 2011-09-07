@@ -1,4 +1,4 @@
-from pipettes.default_pipettes import default_pipettes
+from pipetter.default_pipettes import default_pipettes
 from inspect import ismethod
 import re
 
@@ -89,7 +89,7 @@ def autodiscover():
 	
 	for app in settings.INSTALLED_APPS:
 		if app == __package__:
-			# Don't try to import from the package we're in, i.e. pipettes.
+			# Don't try to import from the package we're in, i.e. pipetter.
 			continue
 		
 		mod = import_module(app)

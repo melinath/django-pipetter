@@ -1,4 +1,4 @@
-Pipettes is a module designed to provide uniform registration and processing of inclusion tags for information pulled from other sources, such as websites. By design, it defines very little about the nature of the pipette, requiring only that it supply the following method:
+Pipetter is a module designed to provide uniform registration and processing of inclusion tags for information pulled from other sources, such as websites. By design, it defines very little about the nature of the pipette, requiring only that it supply the following method:
 
 obj.get_context   :: returns variables to be added to the context of the included template.
 
