@@ -1,6 +1,6 @@
 from django import template
 from django.conf import settings
-from pipetter import pipettes, NotRegistered
+from pipetter import registry, NotRegistered
 from pipetter.utils import get_cache_or_new
 import datetime
 
@@ -11,7 +11,7 @@ register = template.Library()
 class ConstantPipetteNode(template.Node):
 	def __init__(self, tag_name, args, template_path=None):
 		self.tag_name = tag_name
-		self.pipette = pipettes[tag_name]
+		self.pipette = registry[tag_name]
 		self.args = args
 		
 		try:
@@ -33,7 +33,7 @@ class ConstantPipetteNode(template.Node):
 class PipetteNode(template.Node):
 	def __init__(self, tag_name, args, template_path):
 		self.tag_name = tag_name
-		self.pipette = pipettes[tag_name]
+		self.pipette = registry[tag_name]
 		self.args = args
 		self.template_path = template_path
 	
@@ -75,5 +75,5 @@ def do_pipette(parser, token):
 	return ConstantPipetteNode(pipette_name, args, path)
 
 
-for name, pipette in pipettes.items():
+for name, pipette in registry.items():
 	register.tag(name, do_pipette)

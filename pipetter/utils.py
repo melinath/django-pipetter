@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from pipetter import pipettes as registry, NotRegistered
+from pipetter import registry, NotRegistered
 import datetime
 
 

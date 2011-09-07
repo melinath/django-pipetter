@@ -70,9 +70,9 @@ class PipetteRegistry(object):
 		return self._registry[key]
 
 
-pipettes = PipetteRegistry()
+registry = PipetteRegistry()
 for pipette in default_pipettes:
-	pipettes.register(pipette)
+	registry.register(pipette)
 
 
 def autodiscover():
@@ -94,11 +94,11 @@ def autodiscover():
 		
 		mod = import_module(app)
 		try:
-			before_import_registry = copy.copy(pipettes._registry)
+			before_import_registry = copy.copy(registry._registry)
 			import_module('%s.pipettes' % app)
 		except:
 			# Reset the registry to the state before last import.
-			pipettes._registry = before_import_registry
+			registry._registry = before_import_registry
 			# Decide whether to bubble up this error. If there is no
 			# submodule, we can ignore the error as a misguided import
 			# attempt. Otherwise, we want it to bubble up.
