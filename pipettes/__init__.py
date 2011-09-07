@@ -2,6 +2,8 @@ from pipettes.default_pipettes import default_pipettes
 from inspect import ismethod
 import re
 
+VERSION = (0, 9)
+
 
 class NotRegistered(Exception):
 	pass
