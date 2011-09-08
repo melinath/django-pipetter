@@ -1,7 +1,7 @@
 from django.http import HttpResponse, Http404
 import django.utils.simplejson as json
-from pipettes.utils import refresh_cache as refresh, create_cache as create, get_cache_or_new
-from pipettes import pipettes, NotRegistered
+from pipetter.utils import refresh_cache as refresh, create_cache as create, get_cache_or_new
+from pipetter import registry, NotRegistered
 
 
 def refresh_cache(request, pipette_names):
